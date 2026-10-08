@@ -16,17 +16,42 @@ Full schema for all plan sections (≈36 tables) is in `database/schema.sql`; la
 
 ## Setup
 
+### XAMPP on Windows (project folder: `C:\xampp\htdocs\ecozhin`)
+
+1. Put the project in `C:\xampp\htdocs\ecozhin` (so `index.php` is directly inside it). Either copy the files, or clone the work branch:
+   `git clone -b claude/cool-cerf-muyb2i https://github.com/echo4tech/ecozhin.git C:\xampp\htdocs\ecozhin`
+2. In the XAMPP Control Panel start **Apache** and **MySQL**. (`php.ini` needs `pdo_mysql`, `mbstring`, `fileinfo` — all on by default.)
+3. In a terminal: `cd C:\xampp\htdocs\ecozhin` then
+   ```bat
+   copy .env.example .env
+   C:\xampp\php\php.exe database\migrate.php --seed
+   C:\xampp\php\php.exe database\create-admin.php "Admin" +9647500000000 "a-strong-password"
+   ```
+   The defaults in `.env.example` match XAMPP (user `root`, empty password); `migrate.php` creates the database for you.
+4. Open **http://localhost/ecozhin/**. The sub-folder is detected automatically (override with `APP_BASE` in `.env`).
+5. To try it on a phone: same Wi-Fi, `http://<your-PC-IP>/ecozhin/`. Note: GPS, camera capture and "install app" only work on **https** or `localhost`, so for those use an HTTPS tunnel (e.g. `cloudflared tunnel --url http://localhost`) or enable HTTPS in XAMPP.
+
+`.htaccess` needs `AllowOverride All` (XAMPP's default for htdocs) — it routes `/api/*` and hides `app/`, `database/`, `storage/`, `tests/`, `.env`.
+
+### Any other machine (PHP built-in server)
+
 ```bash
 cp .env.example .env            # set DB_* values
-php database/migrate.php --seed # create tables + seed catalog data
+php database/migrate.php --seed # create database + tables + seed catalog data
 php database/create-admin.php "Admin" +9647500000000 'a-strong-password'
 php -S 127.0.0.1:8000 router.php
-php tests/api_test.php          # API integration tests (needs the server above + a test admin, see file header)
-php tests/marketplace_test.php  # phase 3 tests (farms, supplies, search, images, demands)
-PLAYWRIGHT_PATH=/path/to/playwright node tests/e2e_mobile.js   # phone-sized browser end-to-end test
 ```
 
-Requires PHP 8.2+ with PDO MySQL and MySQL 8+/MariaDB 10.6+.
+Requires PHP 8.1+ with PDO MySQL and MySQL 8+/MariaDB 10.6+.
+
+### Tests
+
+```bash
+php tests/api_test.php [base_url]          # auth + master data (needs a test admin: +9647500000001 / adminpass1)
+php tests/marketplace_test.php [base_url]  # farms, supplies, search, images, demands
+PLAYWRIGHT_PATH=/path/to/playwright node tests/e2e_mobile.js [base_url]   # phone-sized browser end-to-end
+```
+`base_url` defaults to `http://127.0.0.1:8000`; use e.g. `http://localhost/ecozhin` under XAMPP.
 
 ## API (so far)
 

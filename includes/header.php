@@ -12,9 +12,10 @@ $rtl = Lang::dir() === 'rtl';
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title><?= e($pageTitle ?? t('app.name')) ?> — <?= e(t('app.name')) ?></title>
-<link rel="manifest" href="/manifest.php?lang=<?= e(Lang::current()) ?>">
-<link rel="icon" href="/assets/images/icon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="/assets/images/icon-192.png">
-<link rel="stylesheet" href="/assets/css/app.css?v=<?= APP_VERSION ?>">
+<link rel="manifest" href="<?= url('/manifest.php') ?>?lang=<?= e(Lang::current()) ?>">
+<link rel="icon" href="<?= url('/assets/images/icon.svg') ?>" type="image/svg+xml">
+<link rel="apple-touch-icon" href="<?= url('/assets/images/icon-192.png') ?>">
+<link rel="stylesheet" href="<?= url('/assets/css/app.css') ?>?v=<?= APP_VERSION ?>">
 </head>
 <body>
+<script>window.BASE = <?= json_encode(BASE_URL) ?>;</script>

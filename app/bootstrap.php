@@ -18,6 +18,24 @@ spl_autoload_register(static function (string $class): void {
 
 Env::load(BASE_PATH . '/.env');
 
+// URL prefix when the app lives in a sub-folder (e.g. XAMPP: http://localhost/ecozhin). Override with APP_BASE in .env.
+(static function (): void {
+    $base = Env::get('APP_BASE');
+    if ($base === null) {
+        $root = isset($_SERVER['DOCUMENT_ROOT']) ? realpath($_SERVER['DOCUMENT_ROOT']) : false;
+        $app = realpath(BASE_PATH);
+        $base = '';
+        if ($root && $app && PHP_SAPI !== 'cli') {
+            $root = str_replace('\\', '/', $root);
+            $app = str_replace('\\', '/', $app);
+            if (strncasecmp($app, $root, strlen($root)) === 0) {
+                $base = substr($app, strlen($root));
+            }
+        }
+    }
+    define('BASE_URL', rtrim('/' . trim($base, '/'), '/'));
+})();
+
 $debug = Env::bool('APP_DEBUG', false) && Env::get('APP_ENV') !== 'production';
 ini_set('display_errors', $debug ? '1' : '0');
 ini_set('log_errors', '1');

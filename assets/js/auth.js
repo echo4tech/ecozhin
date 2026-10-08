@@ -11,7 +11,7 @@
       btn.disabled = true;
       try {
         await Api.post(path, Object.fromEntries(new FormData(form)));
-        location.href = '/dashboard/';
+        location.href = (window.BASE || '') + '/dashboard/';
       } catch (e) {
         btn.disabled = false;
         let shown = false;

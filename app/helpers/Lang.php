@@ -40,4 +40,6 @@ final class Lang
 }
 
 function t(string $key): string { return Lang::t($key); }
+/** Prefix an absolute app path ("/assets/x.css") with the sub-folder the app is served from. */
+function url(string $path = '/'): string { return BASE_URL . $path; }
 function e(?string $s): string { return htmlspecialchars((string) $s, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); }

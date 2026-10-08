@@ -4,7 +4,7 @@ function requirePageAuth(string ...$roles): array
 {
     $user = Auth::user();
     if (!$user || $user['status'] !== 'active' || ($roles && !in_array($user['role'], $roles, true))) {
-        header('Location: /login.php');
+        header('Location: ' . url('/login.php'));
         exit;
     }
     return $user;

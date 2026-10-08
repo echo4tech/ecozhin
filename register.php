@@ -1,11 +1,11 @@
 <?php
 require __DIR__ . '/app/bootstrap.php';
-if (Auth::user()) { header('Location: /dashboard/'); exit; }
+if (Auth::user()) { header('Location: ' . url('/dashboard/')); exit; }
 $pageTitle = t('nav.register');
 include __DIR__ . '/includes/header.php';
 ?>
 <div class="public-wrap">
-  <a href="/" class="small"><?= e(t('common.back')) ?></a>
+  <a href="<?= url('/') ?>" class="small"><?= e(t('common.back')) ?></a>
   <h1 style="margin-top:1rem"><?= e(t('nav.register')) ?></h1>
   <form id="register-form" class="card" novalidate>
     <input type="hidden" name="preferred_language" value="<?= e(Lang::current()) ?>">
@@ -27,6 +27,6 @@ include __DIR__ . '/includes/header.php';
       <input class="input ltr" type="password" name="password" autocomplete="new-password" required></div>
     <button class="btn block" type="submit"><?= e(t('nav.register')) ?></button>
   </form>
-  <p class="center"><a href="/login.php"><?= e(t('nav.login')) ?></a></p>
+  <p class="center"><a href="<?= url('/login.php') ?>"><?= e(t('nav.login')) ?></a></p>
 </div>
 <?php include __DIR__ . '/includes/footer.php'; ?>

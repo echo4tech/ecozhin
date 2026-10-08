@@ -1,8 +1,10 @@
 // Thin JSON client: attaches CSRF token, refreshes it once on 419.
+const BASE = window.BASE || '';
+const U = p => BASE + p; // prefix an absolute app path with the sub-folder (e.g. /ecozhin)
 const Api = (() => {
   let csrf = null;
   const fetchToken = async () => {
-    const r = await fetch('/api/auth/csrf', { credentials: 'same-origin' });
+    const r = await fetch(BASE + '/api/auth/csrf', { credentials: 'same-origin' });
     csrf = (await r.json()).data.token;
   };
   const request = async (method, path, body, retried = false) => {
@@ -12,7 +14,7 @@ const Api = (() => {
     if (!isForm) headers['Content-Type'] = 'application/json';
     let res;
     try {
-      res = await fetch('/api' + path, { method, credentials: 'same-origin', headers, body: body === undefined ? undefined : (isForm ? body : JSON.stringify(body)) });
+      res = await fetch(BASE + '/api' + path, { method, credentials: 'same-origin', headers, body: body === undefined ? undefined : (isForm ? body : JSON.stringify(body)) });
     } catch (e) { const err = new Error(window.I18N?.['err.network'] || 'Network error'); err.network = true; err.errors = {}; throw err; }
     const json = await res.json().catch(() => ({ success: false, message: 'Bad response' }));
     if (res.status === 419 && !retried) { await fetchToken(); return request(method, path, body, true); }

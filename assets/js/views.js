@@ -15,7 +15,7 @@ const statusBadge = s => h('span', { class: 'badge ' + s }, tr('status.' + s));
 const qualityLabel = q => q === 'ungraded' || q === 'any' ? tr('quality.' + q) : tr('quality.grade', { g: q });
 
 function listingCard(s) {
-  const thumb = h('div', { class: 'thumb', style: s.primary_image ? { backgroundImage: `url("${s.primary_image}")` } : {} }, s.primary_image ? null : icon('leaf'));
+  const thumb = h('div', { class: 'thumb', style: s.primary_image ? { backgroundImage: `url("${U(s.primary_image)}")` } : {} }, s.primary_image ? null : icon('leaf'));
   return h('a', { class: 'card listing', href: '#/supply/' + s.id },
     thumb,
     h('div', { class: 'body' },
@@ -148,7 +148,7 @@ async function SupplyView(ctx) {
   const owner = +s.supplier_user_id === +ME.id || ME.role === 'admin';
   const root = h('div');
   root.append(h('div', { class: 'card' },
-    h('div', { class: 'gallery' }, ...(s.images.length ? s.images.map(i => h('img', { src: i.file_path, alt: '', loading: 'lazy' })) : [h('div', { class: 'ph' }, icon('leaf'))])),
+    h('div', { class: 'gallery' }, ...(s.images.length ? s.images.map(i => h('img', { src: U(i.file_path), alt: '', loading: 'lazy' })) : [h('div', { class: 'ph' }, icon('leaf'))])),
     h('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'start', gap: '.5rem' } },
       h('h2', {}, nm({ name_ku: s.waste_name_ku, name_ar: s.waste_name_ar, name_en: s.waste_name_en })), statusBadge(s.status)),
     h('div', { class: 'price', style: { fontSize: '1.3rem' } }, fmtPrice(s)),
@@ -398,7 +398,7 @@ async function ProfileView(ctx) {
   root.append(h('div', { class: 'card' }, h('div', { class: 'label' }, icon('globe'), ' ', tr('profile.language')),
     h('div', { class: 'chips' }, ...[['ku', 'کوردی'], ['ar', 'العربية'], ['en', 'English']].map(([c, n]) => h('a', { class: 'chip' + (LANG === c ? ' on' : ''), href: '?lang=' + c + location.hash }, n)))));
   if (window.__installPrompt) root.append(h('button', { class: 'btn secondary block', style: { marginBottom: '.75rem' }, onclick: async () => { window.__installPrompt.prompt(); window.__installPrompt = null; render(); } }, icon('download'), tr('pwa.install')));
-  root.append(h('button', { class: 'btn danger block', onclick: async () => { await Api.post('/auth/logout').catch(() => {}); lsSet('draft.supply', null); location.href = '/'; } }, icon('logout'), tr('nav.logout')));
+  root.append(h('button', { class: 'btn danger block', onclick: async () => { await Api.post('/auth/logout').catch(() => {}); lsSet('draft.supply', null); location.href = U('/'); } }, icon('logout'), tr('nav.logout')));
   return root;
 }
 

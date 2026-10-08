@@ -35,7 +35,7 @@ async function render() {
     shell.main.replaceChildren(node);
   } catch (e) {
     if (my !== token) return;
-    if (e.status === 401) { location.href = '/login.php'; return; }
+    if (e.status === 401) { location.href = U('/login.php'); return; }
     shell.main.replaceChildren(empty('x', e.status === 404 ? tr('err.notfound') : errMsg(e)), h('button', { class: 'btn secondary block', onclick: render }, tr('common.retry')));
   }
   shell.back.classList.toggle('hidden', !shell.backTo); shell.logo.classList.toggle('hidden', !!shell.backTo);
@@ -54,7 +54,7 @@ function boot() {
   const setOnline = () => shell.offline.classList.toggle('hidden', navigator.onLine);
   addEventListener('online', setOnline); addEventListener('offline', setOnline); setOnline();
   window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); window.__installPrompt = e; });
-  if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register(U('/sw.js')).catch(() => {});
   render();
 }
 boot();
