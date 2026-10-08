@@ -5,4 +5,5 @@ storage/voice/*
 storage/documents/*
 assets/uploads/*
 !**/.gitkeep
+!assets/uploads/.htaccess
 vendor/

@@ -29,6 +29,9 @@ final class Validator
                     'gt' => is_numeric($value) && (float) $value > (float) $arg ? null : "$field must be greater than $arg",
                     'in' => in_array((string) $value, explode(',', (string) $arg), true) ? null : "$field is invalid",
                     'date' => strtotime((string) $value) !== false && preg_match('/^\d{4}-\d{2}-\d{2}$/', (string) $value) ? null : "$field must be a date (YYYY-MM-DD)",
+                    'gte' => is_numeric($value) && (float) $value >= (float) $arg ? null : "$field must be at least $arg",
+                    'lat' => is_numeric($value) && abs((float) $value) <= 90 ? null : "$field must be a valid latitude",
+                    'lng' => is_numeric($value) && abs((float) $value) <= 180 ? null : "$field must be a valid longitude",
                     'phone' => preg_match('/^\+?[0-9]{7,15}$/', (string) $value) ? null : "$field must be a valid phone number",
                     default => null,
                 };
