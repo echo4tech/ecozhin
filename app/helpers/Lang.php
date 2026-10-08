@@ -21,15 +21,21 @@ final class Lang
 
     public static function t(string $key): string
     {
-        $lang = self::current();
-        self::$strings[$lang] ??= json_decode((string) file_get_contents(BASE_PATH . "/lang/$lang.json"), true) ?: [];
-        return self::$strings[$lang][$key] ?? $key;
+        return self::load(self::current())[$key] ?? $key;
+    }
+
+    /** Strings for a language; missing keys fall back to English so a gap never shows a raw key. */
+    private static function load(string $lang): array
+    {
+        return self::$strings[$lang] ??= array_merge(
+            json_decode((string) file_get_contents(BASE_PATH . '/lang/en.json'), true) ?: [],
+            $lang === 'en' ? [] : (json_decode((string) file_get_contents(BASE_PATH . "/lang/$lang.json"), true) ?: [])
+        );
     }
 
     public static function strings(): array
     {
-        self::t('app.name');
-        return self::$strings[self::current()];
+        return self::load(self::current());
     }
 }
 

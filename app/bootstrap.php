@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 define('BASE_PATH', dirname(__DIR__));
+const APP_VERSION = '1';
 
 require __DIR__ . '/helpers/Lang.php';
 

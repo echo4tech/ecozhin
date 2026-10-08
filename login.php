@@ -4,16 +4,16 @@ if (Auth::user()) { header('Location: /dashboard/'); exit; }
 $pageTitle = t('nav.login');
 include __DIR__ . '/includes/header.php';
 ?>
-<div class="row justify-content-center"><div class="col-md-6 col-lg-5">
-  <div class="card"><div class="card-body p-4">
-    <h1 class="h4 mb-3"><?= e(t('nav.login')) ?></h1>
-    <form id="login-form" novalidate>
-      <div class="mb-3"><label class="form-label"><?= e(t('form.login')) ?></label>
-        <input class="form-control" name="login" autocomplete="username" required></div>
-      <div class="mb-3"><label class="form-label"><?= e(t('form.password')) ?></label>
-        <input class="form-control" type="password" name="password" autocomplete="current-password" required></div>
-      <button class="btn btn-success w-100" type="submit"><?= e(t('nav.login')) ?></button>
-    </form>
-  </div></div>
-</div></div>
+<div class="public-wrap">
+  <a href="/" class="small"><?= e(t('common.back')) ?></a>
+  <h1 style="margin-top:1rem"><?= e(t('nav.login')) ?></h1>
+  <form id="login-form" class="card" novalidate>
+    <div class="field"><label for="l"><?= e(t('form.login')) ?></label>
+      <input id="l" class="input ltr" name="login" autocomplete="username" inputmode="email" autocapitalize="none" required></div>
+    <div class="field"><label for="p"><?= e(t('form.password')) ?></label>
+      <input id="p" class="input ltr" type="password" name="password" autocomplete="current-password" required></div>
+    <button class="btn block" type="submit"><?= e(t('nav.login')) ?></button>
+  </form>
+  <p class="center"><a href="/register.php"><?= e(t('nav.register')) ?></a></p>
+</div>
 <?php include __DIR__ . '/includes/footer.php'; ?>

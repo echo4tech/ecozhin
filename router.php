@@ -5,7 +5,7 @@ if (str_starts_with($path, '/api/')) {
     require __DIR__ . '/api/index.php';
     return true;
 }
-$blocked = ['/app/', '/database/', '/storage/', '/tests/', '/.env'];
+$blocked = ['/app/', '/database/', '/storage/', '/tests/', '/.env', '/router.php'];
 foreach ($blocked as $b) {
     if (str_starts_with($path, $b)) {
         http_response_code(404);
