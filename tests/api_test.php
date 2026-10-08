@@ -10,7 +10,7 @@ $phone = "+96475$suffix";
 
 $c = client($base);
 [$code, $r] = $c('POST', '/auth/login', ['login' => 'x', 'password' => 'y'], false);
-check('POST without CSRF rejected (419)', $code === 419, [$code, $r]);
+check('POST without CSRF rejected (403 csrf_invalid)', $code === 403 && ($r['code'] ?? '') === 'csrf_invalid', [$code, $r]);
 
 [$code, $r] = $c('GET', '/auth/me');
 check('me unauthenticated -> 401', $code === 401, $r);

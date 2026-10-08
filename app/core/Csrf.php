@@ -15,7 +15,8 @@ final class Csrf
         }
         $sent = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
         if (!is_string($sent) || $sent === '' || !hash_equals(self::token(), $sent)) {
-            Response::error('Invalid CSRF token', 419);
+            // 403 + code (not the non-standard 419, which Apache turns into a 500)
+            Response::json(false, 'Invalid CSRF token', ['code' => 'csrf_invalid'], 403);
         }
     }
 }

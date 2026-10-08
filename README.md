@@ -18,20 +18,18 @@ Full schema for all plan sections (≈36 tables) is in `database/schema.sql`; la
 
 ### XAMPP on Windows (project folder: `C:\xampp\htdocs\ecozhin`)
 
-1. Put the project in `C:\xampp\htdocs\ecozhin` (so `index.php` is directly inside it). Either copy the files, or clone the work branch:
+1. Put the project in `C:\xampp\htdocs\ecozhin` (so `index.php` is directly inside it). Either unzip/copy the files, or clone the work branch:
    `git clone -b claude/cool-cerf-muyb2i https://github.com/echo4tech/ecozhin.git C:\xampp\htdocs\ecozhin`
-2. In the XAMPP Control Panel start **Apache** and **MySQL**. (`php.ini` needs `pdo_mysql`, `mbstring`, `fileinfo` — all on by default.)
-3. In a terminal: `cd C:\xampp\htdocs\ecozhin` then
-   ```bat
-   copy .env.example .env
-   C:\xampp\php\php.exe database\migrate.php --seed
-   C:\xampp\php\php.exe database\create-admin.php "Admin" +9647500000000 "a-strong-password"
-   ```
-   The defaults in `.env.example` match XAMPP (user `root`, empty password); `migrate.php` creates the database for you.
+2. In the XAMPP Control Panel start **Apache** and **MySQL**.
+3. **Double-click `setup-xampp.bat`.** It creates `.env` (defaults already match XAMPP: user `root`, empty password), creates the `circular_economy` database with all tables and seed data, asks for an admin phone/password, runs a health check and opens the site.
+   - Prefer phpMyAdmin? Import `database/install.sql` (creates the database + tables + seed data), then run `copy .env.example .env` and create the admin with
+     `C:\xampp\php\php.exe database\create-admin.php "Admin" +9647500000000 "a-strong-password"`.
+   - Verify any time with `C:\xampp\php\php.exe database\check.php` (checks PHP extensions, DB connection, tables, seed data, admin, folder permissions).
+   - If you set a MySQL root password, put it in `.env` (`DB_PASSWORD=`).
 4. Open **http://localhost/ecozhin/**. The sub-folder is detected automatically (override with `APP_BASE` in `.env`).
 5. To try it on a phone: same Wi-Fi, `http://<your-PC-IP>/ecozhin/`. Note: GPS, camera capture and "install app" only work on **https** or `localhost`, so for those use an HTTPS tunnel (e.g. `cloudflared tunnel --url http://localhost`) or enable HTTPS in XAMPP.
 
-`.htaccess` needs `AllowOverride All` (XAMPP's default for htdocs) — it routes `/api/*` and hides `app/`, `database/`, `storage/`, `tests/`, `.env`.
+`.htaccess` needs `mod_rewrite` and `AllowOverride All` (both are XAMPP defaults) — it routes `/api/*` and hides `app/`, `database/`, `storage/`, `tests/`, `.env`.
 
 ### Any other machine (PHP built-in server)
 

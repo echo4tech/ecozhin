@@ -3,3 +3,4 @@
 *.sql text eol=lf
 *.png binary
 *.svg text
+*.bat text eol=crlf
