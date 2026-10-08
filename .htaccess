@@ -1,0 +1,5 @@
+Options -Indexes
+RewriteEngine On
+RewriteRule ^(app|database|storage|tests)/ - [R=404,L]
+RewriteRule ^\.env - [R=404,L]
+RewriteRule ^api/ api/index.php [L]
