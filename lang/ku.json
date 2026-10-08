@@ -1,0 +1,5 @@
+{"app.name":"ئیکۆزین","nav.home":"سەرەکی","nav.login":"چوونەژوورەوە","nav.register":"خۆتۆمارکردن","nav.logout":"چوونەدەرەوە","nav.dashboard":"داشبۆرد",
+"home.title":"پاشماوەی کشتوکاڵی بگۆڕە بۆ سەرچاوەی داهات","home.subtitle":"پلاتفۆرمی ئابووری خولگەیی زیرەک: جوتیار، کارگە و گواستنەوە بەیەکەوە دەبەستێتەوە.","home.cta":"ئێستا دەستپێبکە",
+"form.login":"مۆبایل یان ئیمەیل","form.password":"وشەی نهێنی","form.full_name":"ناوی تەواو","form.phone":"ژمارەی مۆبایل","form.email":"ئیمەیل (ئارەزوومەندانە)","form.role":"جۆری هەژمار","form.org":"ناوی کۆمپانیا / کارگە","form.submit":"ناردن",
+"role.farmer":"جوتیار","role.buyer":"کڕیار / کارگە","role.transport":"گواستنەوە","role.collection_center":"ناوەندی کۆکردنەوە","role.admin":"بەڕێوەبەر","role.government_viewer":"چاودێر",
+"dash.welcome":"بەخێربێیت","dash.coming":"ئەم بەشە لە قۆناغی داهاتوودا زیاد دەکرێت.","dash.catalog":"کاتالۆگی پاشماوە","err.generic":"هەڵەیەک ڕوویدا"}

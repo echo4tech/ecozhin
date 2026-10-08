@@ -1,0 +1,5 @@
+{"app.name":"EcoZîn","nav.home":"Home","nav.login":"Log in","nav.register":"Register","nav.logout":"Log out","nav.dashboard":"Dashboard",
+"home.title":"Turn agricultural waste into a source of income","home.subtitle":"A smart circular-economy platform connecting farmers, factories and transport.","home.cta":"Get started",
+"form.login":"Phone or email","form.password":"Password","form.full_name":"Full name","form.phone":"Phone number","form.email":"Email (optional)","form.role":"Account type","form.org":"Company / factory name","form.submit":"Submit",
+"role.farmer":"Farmer","role.buyer":"Buyer / Factory","role.transport":"Transport","role.collection_center":"Collection center","role.admin":"Admin","role.government_viewer":"Observer",
+"dash.welcome":"Welcome","dash.coming":"This section arrives in a later phase.","dash.catalog":"Waste catalog","err.generic":"Something went wrong"}

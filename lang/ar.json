@@ -1,0 +1,5 @@
+{"app.name":"إيكوزين","nav.home":"الرئيسية","nav.login":"تسجيل الدخول","nav.register":"إنشاء حساب","nav.logout":"تسجيل الخروج","nav.dashboard":"لوحة التحكم",
+"home.title":"حوّل المخلفات الزراعية إلى مصدر دخل","home.subtitle":"منصة اقتصاد دائري ذكية تربط المزارعين والمصانع والنقل.","home.cta":"ابدأ الآن",
+"form.login":"الهاتف أو البريد","form.password":"كلمة المرور","form.full_name":"الاسم الكامل","form.phone":"رقم الهاتف","form.email":"البريد الإلكتروني (اختياري)","form.role":"نوع الحساب","form.org":"اسم الشركة / المصنع","form.submit":"إرسال",
+"role.farmer":"مزارع","role.buyer":"مشترٍ / مصنع","role.transport":"نقل","role.collection_center":"مركز تجميع","role.admin":"مدير","role.government_viewer":"مراقب",
+"dash.welcome":"مرحباً","dash.coming":"سيتم إضافة هذا القسم في مرحلة لاحقة.","dash.catalog":"كتالوج المخلفات","err.generic":"حدث خطأ ما"}

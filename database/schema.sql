@@ -1,0 +1,529 @@
+-- Smart Circular Economy Platform — schema (MySQL 8+ / MariaDB 10.6+, InnoDB, utf8mb4)
+SET NAMES utf8mb4;
+SET FOREIGN_KEY_CHECKS = 0;
+
+CREATE TABLE IF NOT EXISTS roles (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(50) NOT NULL UNIQUE,
+    display_name VARCHAR(100) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS users (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    role_id BIGINT UNSIGNED NOT NULL,
+    full_name VARCHAR(150) NOT NULL,
+    phone VARCHAR(30) NOT NULL UNIQUE,
+    email VARCHAR(190) NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    preferred_language VARCHAR(10) DEFAULT 'ku',
+    avatar VARCHAR(255) NULL,
+    status ENUM('pending','active','suspended','blocked') DEFAULT 'active',
+    phone_verified_at DATETIME NULL,
+    email_verified_at DATETIME NULL,
+    last_login_at DATETIME NULL,
+    deleted_at DATETIME NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_users_role FOREIGN KEY (role_id) REFERENCES roles(id),
+    INDEX idx_users_role_status (role_id, status)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS organizations (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    owner_user_id BIGINT UNSIGNED NOT NULL,
+    organization_type ENUM('factory','buyer_company','collection_center','transport_company','cooperative','other') NOT NULL,
+    name VARCHAR(190) NOT NULL,
+    registration_no VARCHAR(100) NULL,
+    phone VARCHAR(30) NULL,
+    email VARCHAR(190) NULL,
+    address TEXT NULL,
+    latitude DECIMAL(10,7) NULL,
+    longitude DECIMAL(10,7) NULL,
+    status ENUM('pending','verified','suspended') DEFAULT 'pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (owner_user_id) REFERENCES users(id)
+) ENGINE=InnoDB;
+
+-- Geography ------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS governorates (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    name_ku VARCHAR(100) NOT NULL, name_ar VARCHAR(100) NULL, name_en VARCHAR(100) NULL
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS districts (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    governorate_id BIGINT UNSIGNED NOT NULL,
+    name_ku VARCHAR(100) NOT NULL, name_ar VARCHAR(100) NULL, name_en VARCHAR(100) NULL,
+    FOREIGN KEY (governorate_id) REFERENCES governorates(id)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS subdistricts (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    district_id BIGINT UNSIGNED NOT NULL,
+    name_ku VARCHAR(100) NOT NULL, name_ar VARCHAR(100) NULL, name_en VARCHAR(100) NULL,
+    FOREIGN KEY (district_id) REFERENCES districts(id)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS villages (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    subdistrict_id BIGINT UNSIGNED NOT NULL,
+    name_ku VARCHAR(100) NOT NULL, name_ar VARCHAR(100) NULL, name_en VARCHAR(100) NULL,
+    latitude DECIMAL(10,7) NULL, longitude DECIMAL(10,7) NULL,
+    FOREIGN KEY (subdistrict_id) REFERENCES subdistricts(id)
+) ENGINE=InnoDB;
+
+-- Farmers --------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS farmer_profiles (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT UNSIGNED NOT NULL UNIQUE,
+    national_farmer_code VARCHAR(100) NULL,
+    experience_years SMALLINT UNSIGNED NULL,
+    notes TEXT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS farms (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    farmer_user_id BIGINT UNSIGNED NOT NULL,
+    village_id BIGINT UNSIGNED NULL,
+    name VARCHAR(150) NOT NULL,
+    area_donum DECIMAL(12,2) NULL,
+    address TEXT NULL,
+    latitude DECIMAL(10,7) NULL,
+    longitude DECIMAL(10,7) NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (farmer_user_id) REFERENCES users(id),
+    FOREIGN KEY (village_id) REFERENCES villages(id)
+) ENGINE=InnoDB;
+
+-- Catalogs -------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS agricultural_products (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    name_ku VARCHAR(150) NOT NULL, name_ar VARCHAR(150) NULL, name_en VARCHAR(150) NULL,
+    category VARCHAR(100) NULL,
+    active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS units (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    code VARCHAR(20) NOT NULL UNIQUE,
+    name_ku VARCHAR(50) NOT NULL, name_en VARCHAR(50) NULL,
+    conversion_to_kg DECIMAL(18,6) NULL
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS waste_types (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    agricultural_product_id BIGINT UNSIGNED NULL,
+    code VARCHAR(60) NOT NULL UNIQUE,
+    name_ku VARCHAR(150) NOT NULL, name_ar VARCHAR(150) NULL, name_en VARCHAR(150) NULL,
+    description TEXT NULL,
+    default_unit_id BIGINT UNSIGNED NULL,
+    recyclable BOOLEAN DEFAULT TRUE,
+    active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (agricultural_product_id) REFERENCES agricultural_products(id),
+    FOREIGN KEY (default_unit_id) REFERENCES units(id)
+) ENGINE=InnoDB;
+
+-- Marketplace ----------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS supply_listings (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    supplier_user_id BIGINT UNSIGNED NOT NULL,
+    farm_id BIGINT UNSIGNED NULL,
+    waste_type_id BIGINT UNSIGNED NOT NULL,
+    unit_id BIGINT UNSIGNED NOT NULL,
+    quantity DECIMAL(14,3) NOT NULL,
+    available_quantity DECIMAL(14,3) NOT NULL,
+    quality_grade ENUM('A','B','C','ungraded') DEFAULT 'ungraded',
+    moisture_percent DECIMAL(5,2) NULL,
+    price_type ENUM('fixed','negotiable','free','request_offer') DEFAULT 'negotiable',
+    price_per_unit DECIMAL(14,2) NULL,
+    currency CHAR(3) DEFAULT 'IQD',
+    available_from DATE NOT NULL,
+    available_until DATE NULL,
+    address TEXT NULL,
+    latitude DECIMAL(10,7) NULL,
+    longitude DECIMAL(10,7) NULL,
+    source_type ENUM('manual','voice','ai','admin') DEFAULT 'manual',
+    description TEXT NULL,
+    status ENUM('draft','active','reserved','partially_sold','sold','expired','cancelled') DEFAULT 'draft',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (supplier_user_id) REFERENCES users(id),
+    FOREIGN KEY (farm_id) REFERENCES farms(id),
+    FOREIGN KEY (waste_type_id) REFERENCES waste_types(id),
+    FOREIGN KEY (unit_id) REFERENCES units(id),
+    INDEX idx_supply_market (waste_type_id, status, available_from),
+    INDEX idx_supply_supplier (supplier_user_id, status),
+    INDEX idx_supply_location (latitude, longitude)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS supply_images (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    supply_listing_id BIGINT UNSIGNED NOT NULL,
+    file_path VARCHAR(255) NOT NULL,
+    is_primary BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (supply_listing_id) REFERENCES supply_listings(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS buyer_demands (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    buyer_user_id BIGINT UNSIGNED NOT NULL,
+    organization_id BIGINT UNSIGNED NULL,
+    waste_type_id BIGINT UNSIGNED NOT NULL,
+    unit_id BIGINT UNSIGNED NOT NULL,
+    required_quantity DECIMAL(14,3) NOT NULL,
+    remaining_quantity DECIMAL(14,3) NOT NULL,
+    minimum_quality ENUM('A','B','C','any') DEFAULT 'any',
+    max_price_per_unit DECIMAL(14,2) NULL,
+    currency CHAR(3) DEFAULT 'IQD',
+    required_from DATE NULL,
+    required_until DATE NULL,
+    delivery_required BOOLEAN DEFAULT TRUE,
+    latitude DECIMAL(10,7) NULL,
+    longitude DECIMAL(10,7) NULL,
+    address TEXT NULL,
+    status ENUM('draft','active','partially_filled','fulfilled','expired','cancelled') DEFAULT 'draft',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (buyer_user_id) REFERENCES users(id),
+    FOREIGN KEY (organization_id) REFERENCES organizations(id),
+    FOREIGN KEY (waste_type_id) REFERENCES waste_types(id),
+    FOREIGN KEY (unit_id) REFERENCES units(id),
+    INDEX idx_demand_buyer (buyer_user_id, status),
+    INDEX idx_demand_market (waste_type_id, status)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS matches (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    supply_listing_id BIGINT UNSIGNED NOT NULL,
+    demand_id BIGINT UNSIGNED NOT NULL,
+    total_score DECIMAL(6,2) NOT NULL,
+    material_score DECIMAL(6,2) DEFAULT 0,
+    quantity_score DECIMAL(6,2) DEFAULT 0,
+    distance_score DECIMAL(6,2) DEFAULT 0,
+    price_score DECIMAL(6,2) DEFAULT 0,
+    quality_score DECIMAL(6,2) DEFAULT 0,
+    time_score DECIMAL(6,2) DEFAULT 0,
+    estimated_distance_km DECIMAL(10,2) NULL,
+    estimated_transport_cost DECIMAL(14,2) NULL,
+    algorithm_version VARCHAR(50) NULL,
+    status ENUM('suggested','viewed','contacted','accepted','rejected','expired') DEFAULT 'suggested',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_supply_demand (supply_listing_id, demand_id),
+    INDEX idx_match_score (total_score),
+    FOREIGN KEY (supply_listing_id) REFERENCES supply_listings(id),
+    FOREIGN KEY (demand_id) REFERENCES buyer_demands(id)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS offers (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    supply_listing_id BIGINT UNSIGNED NOT NULL,
+    demand_id BIGINT UNSIGNED NULL,
+    buyer_user_id BIGINT UNSIGNED NOT NULL,
+    supplier_user_id BIGINT UNSIGNED NOT NULL,
+    quantity DECIMAL(14,3) NOT NULL,
+    unit_id BIGINT UNSIGNED NOT NULL,
+    offered_price_per_unit DECIMAL(14,2) NULL,
+    currency CHAR(3) DEFAULT 'IQD',
+    transport_included BOOLEAN DEFAULT FALSE,
+    message TEXT NULL,
+    status ENUM('pending','countered','accepted','rejected','expired','cancelled') DEFAULT 'pending',
+    expires_at DATETIME NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (supply_listing_id) REFERENCES supply_listings(id),
+    FOREIGN KEY (demand_id) REFERENCES buyer_demands(id),
+    FOREIGN KEY (buyer_user_id) REFERENCES users(id),
+    FOREIGN KEY (supplier_user_id) REFERENCES users(id),
+    FOREIGN KEY (unit_id) REFERENCES units(id),
+    INDEX idx_offer_supply (supply_listing_id, status),
+    INDEX idx_offer_buyer (buyer_user_id, status)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS orders (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    order_number VARCHAR(50) NOT NULL UNIQUE,
+    offer_id BIGINT UNSIGNED NULL,
+    supply_listing_id BIGINT UNSIGNED NOT NULL,
+    supplier_user_id BIGINT UNSIGNED NOT NULL,
+    buyer_user_id BIGINT UNSIGNED NOT NULL,
+    quantity DECIMAL(14,3) NOT NULL,
+    unit_id BIGINT UNSIGNED NOT NULL,
+    price_per_unit DECIMAL(14,2) NOT NULL,
+    subtotal DECIMAL(16,2) NOT NULL,
+    transport_cost DECIMAL(16,2) DEFAULT 0,
+    service_fee DECIMAL(16,2) DEFAULT 0,
+    total_amount DECIMAL(16,2) NOT NULL,
+    currency CHAR(3) DEFAULT 'IQD',
+    status ENUM('pending','confirmed','awaiting_pickup','in_transit','delivered','completed','cancelled','disputed') DEFAULT 'pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (offer_id) REFERENCES offers(id),
+    FOREIGN KEY (supply_listing_id) REFERENCES supply_listings(id),
+    FOREIGN KEY (supplier_user_id) REFERENCES users(id),
+    FOREIGN KEY (buyer_user_id) REFERENCES users(id),
+    FOREIGN KEY (unit_id) REFERENCES units(id),
+    INDEX idx_order_supplier (supplier_user_id, status),
+    INDEX idx_order_buyer (buyer_user_id, status)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS order_status_history (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    order_id BIGINT UNSIGNED NOT NULL,
+    old_status VARCHAR(30) NULL,
+    new_status VARCHAR(30) NOT NULL,
+    changed_by BIGINT UNSIGNED NULL,
+    note TEXT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (order_id) REFERENCES orders(id),
+    FOREIGN KEY (changed_by) REFERENCES users(id)
+) ENGINE=InnoDB;
+
+-- Logistics ------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS vehicles (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    owner_user_id BIGINT UNSIGNED NOT NULL,
+    organization_id BIGINT UNSIGNED NULL,
+    vehicle_type VARCHAR(60) NOT NULL,
+    plate_number VARCHAR(30) NOT NULL,
+    capacity DECIMAL(12,2) NOT NULL,
+    unit_id BIGINT UNSIGNED NOT NULL,
+    active BOOLEAN DEFAULT TRUE,
+    FOREIGN KEY (owner_user_id) REFERENCES users(id),
+    FOREIGN KEY (organization_id) REFERENCES organizations(id),
+    FOREIGN KEY (unit_id) REFERENCES units(id)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS deliveries (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    order_id BIGINT UNSIGNED NOT NULL,
+    transport_provider_user_id BIGINT UNSIGNED NULL,
+    vehicle_id BIGINT UNSIGNED NULL,
+    pickup_address TEXT NOT NULL,
+    pickup_latitude DECIMAL(10,7) NULL, pickup_longitude DECIMAL(10,7) NULL,
+    delivery_address TEXT NOT NULL,
+    delivery_latitude DECIMAL(10,7) NULL, delivery_longitude DECIMAL(10,7) NULL,
+    distance_km DECIMAL(10,2) NULL,
+    pickup_date DATETIME NULL,
+    delivered_at DATETIME NULL,
+    transport_cost DECIMAL(14,2) DEFAULT 0,
+    status ENUM('requested','assigned','accepted','on_way_to_pickup','picked_up','in_transit','delivered','cancelled') DEFAULT 'requested',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (order_id) REFERENCES orders(id),
+    FOREIGN KEY (transport_provider_user_id) REFERENCES users(id),
+    FOREIGN KEY (vehicle_id) REFERENCES vehicles(id)
+) ENGINE=InnoDB;
+
+-- Payments, reviews, impact ----------------------------------------------------
+CREATE TABLE IF NOT EXISTS payments (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    order_id BIGINT UNSIGNED NOT NULL,
+    payer_user_id BIGINT UNSIGNED NOT NULL,
+    payee_user_id BIGINT UNSIGNED NOT NULL,
+    amount DECIMAL(16,2) NOT NULL,
+    currency CHAR(3) DEFAULT 'IQD',
+    payment_method ENUM('cash','bank_transfer','wallet','gateway','other') DEFAULT 'cash',
+    transaction_reference VARCHAR(120) NULL,
+    status ENUM('pending','paid','failed','refunded') DEFAULT 'pending',
+    paid_at DATETIME NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (order_id) REFERENCES orders(id),
+    FOREIGN KEY (payer_user_id) REFERENCES users(id),
+    FOREIGN KEY (payee_user_id) REFERENCES users(id)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS reviews (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    order_id BIGINT UNSIGNED NOT NULL,
+    reviewer_user_id BIGINT UNSIGNED NOT NULL,
+    reviewed_user_id BIGINT UNSIGNED NOT NULL,
+    rating TINYINT UNSIGNED NOT NULL,
+    quality_rating TINYINT UNSIGNED NULL,
+    communication_rating TINYINT UNSIGNED NULL,
+    delivery_rating TINYINT UNSIGNED NULL,
+    comment TEXT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_review (order_id, reviewer_user_id),
+    FOREIGN KEY (order_id) REFERENCES orders(id),
+    FOREIGN KEY (reviewer_user_id) REFERENCES users(id),
+    FOREIGN KEY (reviewed_user_id) REFERENCES users(id)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS impact_records (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    order_id BIGINT UNSIGNED NOT NULL,
+    waste_diverted_kg DECIMAL(16,3) NOT NULL,
+    estimated_co2_saved_kg DECIMAL(16,3) NULL,
+    estimated_landfill_reduction_kg DECIMAL(16,3) NULL,
+    calculation_version VARCHAR(30) NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (order_id) REFERENCES orders(id)
+) ENGINE=InnoDB;
+
+-- Collection centers & inventory ------------------------------------------------
+CREATE TABLE IF NOT EXISTS warehouses (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    organization_id BIGINT UNSIGNED NOT NULL,
+    name VARCHAR(150) NOT NULL,
+    address TEXT NULL,
+    latitude DECIMAL(10,7) NULL, longitude DECIMAL(10,7) NULL,
+    capacity_kg DECIMAL(16,3) NULL,
+    active BOOLEAN DEFAULT TRUE,
+    FOREIGN KEY (organization_id) REFERENCES organizations(id)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS inventory_batches (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    warehouse_id BIGINT UNSIGNED NOT NULL,
+    waste_type_id BIGINT UNSIGNED NOT NULL,
+    source_supply_id BIGINT UNSIGNED NULL,
+    quantity DECIMAL(14,3) NOT NULL,
+    unit_id BIGINT UNSIGNED NOT NULL,
+    quality_grade ENUM('A','B','C','ungraded') DEFAULT 'ungraded',
+    received_at DATETIME NOT NULL,
+    status ENUM('in_stock','reserved','depleted') DEFAULT 'in_stock',
+    FOREIGN KEY (warehouse_id) REFERENCES warehouses(id),
+    FOREIGN KEY (waste_type_id) REFERENCES waste_types(id),
+    FOREIGN KEY (source_supply_id) REFERENCES supply_listings(id),
+    FOREIGN KEY (unit_id) REFERENCES units(id)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS inventory_movements (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    batch_id BIGINT UNSIGNED NOT NULL,
+    movement_type ENUM('in','out','adjustment','reserved','released') NOT NULL,
+    quantity DECIMAL(14,3) NOT NULL,
+    reference_type VARCHAR(50) NULL,
+    reference_id BIGINT UNSIGNED NULL,
+    created_by BIGINT UNSIGNED NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (batch_id) REFERENCES inventory_batches(id),
+    FOREIGN KEY (created_by) REFERENCES users(id)
+) ENGINE=InnoDB;
+
+-- AI / voice -----------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS voice_requests (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT UNSIGNED NOT NULL,
+    audio_path VARCHAR(255) NULL,
+    transcription LONGTEXT NULL,
+    detected_intent VARCHAR(100) NULL,
+    extracted_json JSON NULL,
+    confidence_score DECIMAL(5,4) NULL,
+    processing_status ENUM('uploaded','transcribing','parsing','needs_confirmation','confirmed','failed') DEFAULT 'uploaded',
+    error_message TEXT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS ai_requests (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT UNSIGNED NULL,
+    service_type ENUM('speech_to_text','nlp_parser','matching','prediction','recommendation') NOT NULL,
+    provider VARCHAR(60) NULL,
+    model_name VARCHAR(100) NULL,
+    request_reference VARCHAR(100) NULL,
+    input_tokens INT UNSIGNED NULL,
+    output_tokens INT UNSIGNED NULL,
+    latency_ms INT UNSIGNED NULL,
+    success BOOLEAN DEFAULT TRUE,
+    error_message TEXT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS production_seasons (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    farm_id BIGINT UNSIGNED NOT NULL,
+    agricultural_product_id BIGINT UNSIGNED NOT NULL,
+    season_year SMALLINT UNSIGNED NOT NULL,
+    estimated_production_kg DECIMAL(16,3) NULL,
+    actual_production_kg DECIMAL(16,3) NULL,
+    estimated_waste_kg DECIMAL(16,3) NULL,
+    actual_waste_kg DECIMAL(16,3) NULL,
+    harvest_start DATE NULL,
+    harvest_end DATE NULL,
+    FOREIGN KEY (farm_id) REFERENCES farms(id),
+    FOREIGN KEY (agricultural_product_id) REFERENCES agricultural_products(id)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS waste_conversion_factors (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    agricultural_product_id BIGINT UNSIGNED NOT NULL,
+    waste_type_id BIGINT UNSIGNED NOT NULL,
+    waste_percentage DECIMAL(6,3) NOT NULL,
+    source VARCHAR(255) NOT NULL,
+    effective_from DATE NOT NULL,
+    FOREIGN KEY (agricultural_product_id) REFERENCES agricultural_products(id),
+    FOREIGN KEY (waste_type_id) REFERENCES waste_types(id)
+) ENGINE=InnoDB;
+
+-- Notifications, audit, settings -----------------------------------------------
+CREATE TABLE IF NOT EXISTS notifications (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT UNSIGNED NOT NULL,
+    type VARCHAR(100) NOT NULL,
+    title VARCHAR(190) NOT NULL,
+    message TEXT NOT NULL,
+    data JSON NULL,
+    read_at DATETIME NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    INDEX idx_notif_user (user_id, read_at)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS notification_preferences (
+    user_id BIGINT UNSIGNED PRIMARY KEY,
+    in_app_enabled BOOLEAN DEFAULT TRUE,
+    sms_enabled BOOLEAN DEFAULT FALSE,
+    email_enabled BOOLEAN DEFAULT FALSE,
+    push_enabled BOOLEAN DEFAULT FALSE,
+    new_match BOOLEAN DEFAULT TRUE,
+    new_offer BOOLEAN DEFAULT TRUE,
+    order_update BOOLEAN DEFAULT TRUE,
+    delivery_update BOOLEAN DEFAULT TRUE,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS audit_logs (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT UNSIGNED NULL,
+    action VARCHAR(100) NOT NULL,
+    entity_type VARCHAR(100) NULL,
+    entity_id BIGINT UNSIGNED NULL,
+    old_values JSON NULL,
+    new_values JSON NULL,
+    ip_address VARCHAR(45) NULL,
+    user_agent VARCHAR(255) NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_audit_entity (entity_type, entity_id),
+    INDEX idx_audit_user (user_id)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS settings (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    setting_key VARCHAR(100) NOT NULL UNIQUE,
+    setting_value TEXT NULL,
+    value_type ENUM('string','int','float','bool','json') DEFAULT 'string',
+    group_name VARCHAR(50) DEFAULT 'general',
+    is_public BOOLEAN DEFAULT FALSE,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS rate_limits (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    bucket VARCHAR(190) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_rate_bucket (bucket, created_at)
+) ENGINE=InnoDB;
+
+SET FOREIGN_KEY_CHECKS = 1;

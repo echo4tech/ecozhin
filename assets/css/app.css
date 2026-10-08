@@ -1,0 +1,5 @@
+body { background: #f6f8f5; font-family: "Noto Naskh Arabic", "Segoe UI", Tahoma, sans-serif; }
+.btn { min-height: 44px; }           /* large touch targets for mobile-first farmers */
+.form-control, .form-select { min-height: 48px; }
+.hero { padding: 3rem 0; }
+.card { border: 0; box-shadow: 0 1px 4px rgba(0,0,0,.08); }

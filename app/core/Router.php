@@ -1,0 +1,30 @@
+<?php
+declare(strict_types=1);
+
+final class Router
+{
+    private array $routes = [];
+
+    public function add(string $method, string $pattern, callable $handler): void
+    {
+        $regex = '#^' . preg_replace('#\{(\w+)\}#', '(?P<$1>[^/]+)', $pattern) . '$#';
+        $this->routes[] = [$method, $regex, $handler];
+    }
+
+    public function dispatch(string $method, string $path): void
+    {
+        $allowed = false;
+        foreach ($this->routes as [$m, $regex, $handler]) {
+            if (preg_match($regex, $path, $mm)) {
+                if ($m !== $method) {
+                    $allowed = true;
+                    continue;
+                }
+                $params = array_filter($mm, 'is_string', ARRAY_FILTER_USE_KEY);
+                $handler(...$params);
+                return;
+            }
+        }
+        $allowed ? Response::error('Method not allowed', 405) : Response::error('Not found', 404);
+    }
+}
