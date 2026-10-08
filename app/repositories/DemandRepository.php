@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 final class DemandRepository
 {
-    private const SELECT = 'SELECT d.*, w.name_ku AS waste_name_ku, w.name_ar AS waste_name_ar, w.name_en AS waste_name_en, un.code AS unit_code,
+    private const SELECT = 'SELECT d.*, w.name_ku AS waste_name_ku, w.name_ar AS waste_name_ar, w.name_en AS waste_name_en, un.code AS unit_code, un.name_ku AS unit_name_ku,
             o.name AS organization_name
         FROM buyer_demands d
         JOIN waste_types w ON w.id = d.waste_type_id

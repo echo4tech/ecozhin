@@ -48,6 +48,8 @@ Requires PHP 8.1+ with PDO MySQL and MySQL 8+/MariaDB 10.6+.
 php tests/api_test.php [base_url]          # auth + master data (needs a test admin: +9647500000001 / adminpass1)
 php tests/marketplace_test.php [base_url]  # farms, supplies, search, images, demands
 PLAYWRIGHT_PATH=/path/to/playwright node tests/e2e_mobile.js [base_url]   # phone-sized browser end-to-end
+php database/demo-seed.php                 # demo data: 5 farmers, 3 factories, 10 listings, 5 demands (password demo12345)
+PLAYWRIGHT_PATH=/path/to/playwright node tests/pilot.js [base_url]       # pilot run: the Halabja scenario through the UI with the demo accounts
 ```
 `base_url` defaults to `http://127.0.0.1:8000`; use e.g. `http://localhost/ecozhin` under XAMPP.
 
